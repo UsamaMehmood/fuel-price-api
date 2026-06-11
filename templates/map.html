@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fuel Route</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    form, #summary { padding: 10px; }
+    form { background: #f4f4f4; }
+    #map { height: 80vh; }
+  </style>
+</head>
+<body>
+  <form method="get">
+    <input name="start" value="{{ start }}" placeholder="City, ST or lat,lng">
+    <input name="finish" value="{{ finish }}" placeholder="City, ST or lat,lng">
+    <button>Show route</button>
+  </form>
+  <div id="summary"></div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map("map").setView([39.5, -98.35], 4);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    const start = "{{ start }}", finish = "{{ finish }}";
+    if (start && finish) draw();
+
+    async function draw() {
+      const res = await fetch(`/api/route/?start=${encodeURIComponent(start)}&finish=${encodeURIComponent(finish)}`);
+      const data = await res.json();
+      if (!res.ok) { summary.textContent = data.detail || "error"; return; }
+
+      const line = L.geoJSON(data.route, { style: { color: "#2b6cb0", weight: 4 } }).addTo(map);
+      L.marker([data.start.lat, data.start.lng]).addTo(map).bindPopup("Start");
+      L.marker([data.finish.lat, data.finish.lng]).addTo(map).bindPopup("Finish");
+      data.fuel_stops.forEach(s => {
+        L.circleMarker([s.latitude, s.longitude], { radius: 6, color: "#e53e3e" })
+          .addTo(map).bindPopup(`${s.name}<br>$${s.price_per_gallon}/gal — ${s.gallons} gal — $${s.cost}`);
+      });
+      map.fitBounds(line.getBounds());
+      summary.textContent = `${data.total_distance_miles} mi · ${data.fuel_stops.length} stops · $${data.total_fuel_cost} total`;
+    }
+  </script>
+</body>
+</html>
