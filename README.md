@@ -110,18 +110,6 @@ Open in a browser:
 
 ---
 
-## Tests and benchmark
-
-```bash
-python manage.py test routes              # unit tests for the fuel-stop planner
-python manage.py benchmark_routes --count 4   # times real cross-country routes
-```
-
-The benchmark prints, per route, the **OSRM call time vs. local compute time** (matching +
-planning), so you can see the local work is only a few milliseconds.
-
----
-
 ## Configuration (`fuelroute/settings.py`)
 
 | Setting | Default | Meaning |
@@ -162,7 +150,7 @@ fuel-route-api/
     ├── views.py              # RouteView, MapView
     ├── serializers.py        # request validation
     ├── services/             # routing, geocoding, spatial index, fuel planner
-    ├── management/commands/  # load_fuel_data, benchmark_routes
+    ├── management/commands/  # load_fuel_data
     └── tests.py
 ```
 
